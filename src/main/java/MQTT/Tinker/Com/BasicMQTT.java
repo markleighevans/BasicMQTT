@@ -11,6 +11,7 @@ import java.util.Date;
  */
 public class BasicMQTT implements MqttCallback {
     MqttClient client;
+    MqttConnectOptions connOpts;
     MemoryPersistence persistence = new MemoryPersistence();
     String BrokerID     = "tcp://iot.eclipse.org:1883";
     String clientId     = "JavaSample";
@@ -28,7 +29,9 @@ public class BasicMQTT implements MqttCallback {
     {
     try {
         client = new MqttClient(BrokerID, clientId, persistence);
-        client.connect();
+        connOpts = new MqttConnectOptions();
+        connOpts.setCleanSession(true);
+        client.connect(connOpts);
         client.setCallback(this);
         client.subscribe("/SA107SY/Lounge/Temperature");
         MqttMessage message = new MqttMessage();
@@ -46,15 +49,19 @@ public class BasicMQTT implements MqttCallback {
 }
 
     @Override
-    public void connectionLost(Throwable cause) {
-        // TODO Auto-generated method stub
+    public void connectionLost(Throwable cause)
+    {
+        System.out.println("Connection to  broker lost!" + cause.getMessage());
 
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message)
             throws Exception {
-        System.out.println("Message arrived " + message);
+        System.out.println("\nMessage received!" +
+                "\n\tTopic:   " + topic +
+                "\n\tMessage: " + new String(message.getPayload()) +
+                "\n\tQoS:     " + message.getQos() + "\n");
     }
 
     @Override
