@@ -13,8 +13,17 @@ public class BasicMQTT implements MqttCallback {
     MqttClient client;
     MqttConnectOptions connOpts;
     MemoryPersistence persistence = new MemoryPersistence();
-    String BrokerID     = "tcp://iot.eclipse.org:1883";
-    String clientId     = "JavaSample";
+    //String BrokerID     = "tcp://iot.eclipse.org:1883";
+    String BrokerID     =   "tcp://xi7mod.messaging.internetofthings.ibmcloud.com:1883";
+    String M2MIO_DOMAIN = "iot-2/evt/" + "Temperature"  + "/fmt/json";
+    String M2MIO_STUFF = "things";
+
+    String clientId = "d:xi7mod:MQTTDevice:thisisthedeviceid"; // d:<org-id>:<type-id>:<device-id>
+    String M2MIO_USERNAME = "use-token-auth";
+    String M2MIO_PASSWORD_MD5 = "9KuuaLWin!fFiSe(kC";
+    //String Topic        = "/SA107SY/Lounge/Temperature";
+    //String Topic          = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + clientId;
+    String Topic          = M2MIO_DOMAIN ;
 
     public BasicMQTT()
     {
@@ -29,17 +38,25 @@ public class BasicMQTT implements MqttCallback {
     {
     try {
         client = new MqttClient(BrokerID, clientId, persistence);
+
+        //Set connection Options//
         connOpts = new MqttConnectOptions();
+        connOpts.setUserName(M2MIO_USERNAME);
+        connOpts.setPassword(M2MIO_PASSWORD_MD5.toCharArray());
         connOpts.setCleanSession(true);
-        client.connect(connOpts);
+        ///////////////////////////////
         client.setCallback(this);
-        client.subscribe("/SA107SY/Lounge/Temperature");
+
+        client.connect(connOpts);
+
+        //client.subscribe(Topic);
         MqttMessage message = new MqttMessage();
         int Counter = 0;
         do {
-            message.setPayload(new SimpleDateFormat("dd-MM-yyyy-hhmmss").format(new Date())
-                    .getBytes());
-            client.publish("/SA107SY/Lounge/Temperature", message);
+            //message.setPayload(new SimpleDateFormat("dd-MM-yyyy-hhmmss").format(new Date()).getBytes());
+            String MessageText = "{\"pubmsg\":" + Counter + "}";
+            message.setPayload(MessageText.getBytes());
+            client.publish(Topic, message);
             Counter++;
         }
         while ( Counter < 10);
